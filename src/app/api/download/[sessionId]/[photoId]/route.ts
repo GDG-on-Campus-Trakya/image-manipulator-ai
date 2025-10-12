@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 
 export async function GET(
   _request: NextRequest,
@@ -9,11 +8,11 @@ export async function GET(
   try {
     const { sessionId, photoId } = await params;
 
-    // Get the photo document from Firestore
-    const photoDoc = doc(db, `sessions/${sessionId}/photos`, photoId);
-    const photoSnapshot = await getDoc(photoDoc);
+    // Get the photo document from Firestore using Admin SDK
+    const photoDoc = adminDb.collection('sessions').doc(sessionId).collection('photos').doc(photoId);
+    const photoSnapshot = await photoDoc.get();
 
-    if (!photoSnapshot.exists()) {
+    if (!photoSnapshot.exists) {
       return NextResponse.json(
         { error: 'Photo not found' },
         { status: 404 }
