@@ -69,18 +69,18 @@ export default function DashboardPage() {
   const mobileUploadUrl = `${window.location.origin}/m/${sessionId}`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                 AI Dashboard
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Session:{' '}
-                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">
                   {sessionId}
                 </span>
               </p>
@@ -106,16 +106,16 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center py-12">
             <div className="flex flex-col items-center gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-              <p className="text-gray-600">Loading photos...</p>
+              <p className="text-gray-600 dark:text-gray-400">Loading photos...</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-3">
               <svg
-                className="h-5 w-5 text-red-500 flex-shrink-0"
+                className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -125,7 +125,7 @@ export default function DashboardPage() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-red-800">{error}</span>
+              <span className="text-red-800 dark:text-red-200">{error}</span>
             </div>
           </div>
         )}
@@ -133,7 +133,7 @@ export default function DashboardPage() {
         {!loading && !error && photos.length === 0 && (
           <div className="text-center py-12">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -145,10 +145,10 @@ export default function DashboardPage() {
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">
+            <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-gray-100">
               No photos yet
             </h3>
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-gray-500 dark:text-gray-400">
               Upload photos from the mobile device to see them here
             </p>
             <div className="mt-6">
@@ -167,7 +167,7 @@ export default function DashboardPage() {
         {photos.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Photos ({photos.length})
               </h2>
             </div>

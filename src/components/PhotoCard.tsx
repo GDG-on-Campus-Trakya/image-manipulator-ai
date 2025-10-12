@@ -22,6 +22,14 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
   const [showInputQR, setShowInputQR] = useState(false);
   const [showOutputQR, setShowOutputQR] = useState(false);
 
+  // Generate a short URL for QR code
+  const getShortDownloadUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/api/download/${sessionId}/${photo.id}`;
+    }
+    return '';
+  };
+
   const downloadImageFromUrl = async (url: string): Promise<Blob> => {
     const response = await fetch(url);
     if (!response.ok) {
@@ -33,12 +41,6 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
   const handleRunAI = async () => {
     if (!prompt.trim()) {
       setError('Please enter a prompt');
-      return;
-    }
-
-    const token = process.env.NEXT_PUBLIC_REPLICATE_API_TOKEN;
-    if (!token) {
-      setError('Replicate API token not configured');
       return;
     }
 
@@ -65,12 +67,12 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
         sequential_image_generation: 'disabled',
       };
 
-      // Run Replicate
+      // Run Replicate (token is now handled by API route)
       setStatus('Processing with AI...');
       const output = await runReplicate(
         modelVersion,
         modelInput as any,
-        token,
+        undefined, // No token needed - handled server-side
         (newStatus) => {
           setStatus(`AI Status: ${newStatus}`);
         }
@@ -154,15 +156,15 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
       <div className="grid lg:grid-cols-3 gap-4 p-6">
         {/* Left - Input Image */}
         <div className="space-y-3">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
             Input Image
           </h3>
-          <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative aspect-square bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden">
             <img
               src={photo.url}
               alt="Input photo"
@@ -176,37 +178,37 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-center text-xs font-medium transition-colors"
+              className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-center text-xs font-medium transition-colors"
             >
               Download
             </a>
             <button
               onClick={() => setShowInputQR(!showInputQR)}
-              className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-medium transition-colors"
+              className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 rounded-lg text-xs font-medium transition-colors"
             >
               {showInputQR ? 'Hide' : 'Show'} QR
             </button>
           </div>
 
           {showInputQR && (
-            <div className="bg-white p-3 rounded-lg border-2 border-blue-200 flex justify-center">
+            <div className="bg-white dark:bg-gray-900 p-3 rounded-lg border-2 border-blue-200 dark:border-blue-700 flex justify-center">
               <QRCodeSVG value={photo.url} size={150} level="H" />
             </div>
           )}
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Uploaded: {photo.uploadedAt.toLocaleString()}
           </p>
         </div>
 
         {/* Middle - AI Controls */}
         <div className="space-y-3">
-          <h3 className="font-semibold text-gray-900">AI Processing</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">AI Processing</h3>
 
           <div>
             <label
               htmlFor={`prompt-${photo.id}`}
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Prompt
             </label>
@@ -216,7 +218,7 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
               onChange={(e) => setPrompt(e.target.value)}
               disabled={processing}
               placeholder="Describe the transformation you want..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none disabled:bg-gray-50 disabled:text-gray-500 text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
               rows={5}
             />
           </div>
@@ -224,7 +226,7 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
           <button
             onClick={handleRunAI}
             disabled={processing || !prompt.trim()}
-            className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+            className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
           >
             {processing ? (
               <span className="flex items-center justify-center gap-2">
@@ -255,19 +257,19 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
           </button>
 
           {status && !error && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-blue-800 text-xs">{status}</p>
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <p className="text-blue-800 dark:text-blue-200 text-xs">{status}</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-800 text-xs font-medium">{error}</p>
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <p className="text-red-800 dark:text-red-200 text-xs font-medium">{error}</p>
             </div>
           )}
 
-          <div className="pt-2 border-t border-gray-200">
-            <p className="text-xs text-gray-500">
+          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               <strong>Model Settings:</strong>
               <br />
               Size: 1K (2048x2048)
@@ -279,14 +281,14 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
 
         {/* Right - AI Output */}
         <div className="space-y-3">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
             AI Output
           </h3>
 
           {aiOutputUrl ? (
             <>
-              <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              <div className="relative aspect-square bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden">
                 <img
                   src={aiOutputUrl}
                   alt="AI output"
@@ -300,34 +302,34 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
                   download
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-center text-xs font-medium transition-colors"
+                  className="flex-1 px-3 py-2 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-200 rounded-lg text-center text-xs font-medium transition-colors"
                 >
                   Download
                 </a>
                 <button
                   onClick={() => setShowOutputQR(!showOutputQR)}
-                  className="flex-1 px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-xs font-medium transition-colors"
+                  className="flex-1 px-3 py-2 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-200 rounded-lg text-xs font-medium transition-colors"
                 >
                   {showOutputQR ? 'Hide' : 'Show'} QR
                 </button>
               </div>
 
               {showOutputQR && (
-                <div className="bg-white p-3 rounded-lg border-2 border-green-200 flex justify-center">
-                  <QRCodeSVG value={aiOutputUrl} size={150} level="H" />
+                <div className="bg-white dark:bg-gray-900 p-3 rounded-lg border-2 border-green-200 dark:border-green-700 flex justify-center">
+                  <QRCodeSVG value={getShortDownloadUrl()} size={200} level="M" />
                 </div>
               )}
 
               {photo.aiProcessedAt && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Processed: {photo.aiProcessedAt.toLocaleString()}
                 </p>
               )}
             </>
           ) : (
-            <div className="aspect-square bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center p-6 text-center">
+            <div className="aspect-square bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center p-6 text-center">
               <svg
-                className="w-12 h-12 text-gray-400 mb-3"
+                className="w-12 h-12 text-gray-400 dark:text-gray-500 mb-3"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -339,10 +341,10 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 No AI output yet
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 Enter a prompt and click Generate
               </p>
             </div>
