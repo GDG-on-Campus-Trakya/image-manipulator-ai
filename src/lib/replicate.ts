@@ -13,49 +13,47 @@ export interface ReplicatePrediction {
 }
 
 /**
- * Creates a new prediction on Replicate
+ * Creates a new prediction on Replicate (via API route)
  */
 export async function createPrediction(
   version: string,
   input: ReplicateInput,
-  token: string
+  token?: string // Token is now optional since API route handles it
 ): Promise<ReplicatePrediction> {
-  const response = await fetch('https://api.replicate.com/v1/predictions', {
+  const response = await fetch('/api/replicate', {
     method: 'POST',
     headers: {
-      Authorization: `Token ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ version, input }),
+    body: JSON.stringify({ action: 'create', version, input }),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to create prediction: ${error}`);
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to create prediction');
   }
 
   return response.json();
 }
 
 /**
- * Gets the status of a prediction
+ * Gets the status of a prediction (via API route)
  */
 export async function getPrediction(
   id: string,
-  token: string
+  token?: string // Token is now optional since API route handles it
 ): Promise<ReplicatePrediction> {
-  const response = await fetch(
-    `https://api.replicate.com/v1/predictions/${id}`,
-    {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    }
-  );
+  const response = await fetch('/api/replicate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action: 'get', predictionId: id }),
+  });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to get prediction: ${error}`);
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to get prediction');
   }
 
   return response.json();
@@ -66,14 +64,14 @@ export async function getPrediction(
  */
 export async function pollPrediction(
   id: string,
-  token: string,
+  token?: string, // Token is now optional
   interval: number = 1500,
   maxAttempts: number = 120
 ): Promise<ReplicatePrediction> {
   let attempts = 0;
 
   while (attempts < maxAttempts) {
-    const prediction = await getPrediction(id, token);
+    const prediction = await getPrediction(id);
 
     if (
       prediction.status === 'succeeded' ||
@@ -96,11 +94,11 @@ export async function pollPrediction(
 export async function runReplicate(
   version: string,
   input: ReplicateInput,
-  token: string,
+  token?: string, // Token is now optional
   onProgress?: (status: string) => void
 ): Promise<any> {
   // Create the prediction
-  const prediction = await createPrediction(version, input, token);
+  const prediction = await createPrediction(version, input);
   onProgress?.(prediction.status);
 
   // Poll until completion
@@ -109,7 +107,7 @@ export async function runReplicate(
   const interval = 1500;
 
   while (attempts < maxAttempts) {
-    const result = await getPrediction(prediction.id, token);
+    const result = await getPrediction(prediction.id);
     onProgress?.(result.status);
 
     if (result.status === 'succeeded') {
