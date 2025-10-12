@@ -1,315 +1,84 @@
-# AI Image Manipulator
+# AI Image Manipulator - GDG On Campus Trakya Üniversitesi Stant Haftası
 
-A Next.js application that allows mobile photo uploads and real-time AI image processing through a desktop dashboard. Built with Firebase Storage and Replicate AI.
+Bu proje, GDG On Campus Türkiye'nin düzenlediği stant haftası etkinliği için geliştirilmiş interaktif bir web uygulamasıdır. Ziyaretçilerin, yükledikleri fotoğrafları yapay zeka (AI) kullanarak, metin komutları (prompt) ile dönüştürmelerini ve ortaya çıkan yeni görselleri anında QR kod ile telefonlarına indirmelerini sağlar. Production-ready değildir, bunun için üretilmemiştir!
 
-## Features
+Uygulama, stant ziyaretçilerine eğlenceli ve teknolojik bir deneyim sunmak amacıyla tasarlanmıştır.
 
-- **Password Protection**: Simple password authentication to secure access
-- **Mobile Upload**: Capture and upload photos from mobile devices
-- **Real-time Sync**: Photos appear instantly on the dashboard via Firestore
-- **AI Processing**: Process images with Replicate AI using custom prompts
-- **QR Code Generation**: Generate QR codes for easy photo sharing
-- **Session-based**: Organize photos by session for better management
+## Temel Özellikler
 
-## Architecture
+- **Yapay Zeka ile Görüntü Dönüştürme:** [Replicate](https://replicate.com/) API'si kullanılarak Seedream 4 modeli yüklenen görselleri metin komutlarıyla yeniden işler.
+- **Gerçek Zamanlı Bento Grid Galeri:** Yapay zeka tarafından oluşturulan tüm görseller, anlık olarak güncellenen, modern ve dinamik bir bento grid arayüzünde sergilenir.
+- **Anında QR Kod ile İndirme:** Galerideki her bir görsele tıklandığında, kullanıcıların görseli kolayca telefonlarına indirebilmesi için ekranda bir QR kod belirir.
+- **Firebase Entegrasyonu:** Tüm görseller ve oturum verileri, Firebase Storage ve Firestore üzerinde güvenli bir şekilde saklanır.
 
-### Routes
+## Kullanılan Teknolojiler
 
-- `/` - Home page with session creation
-- `/m/[sessionId]` - Mobile upload interface
-- `/d/[sessionId]` - Desktop dashboard with AI controls
+- **Framework:** [Next.js](https://nextjs.org/) (React)
+- **Dil:** [TypeScript](https://www.typescriptlang.org/)
+- **Veritabanı ve Depolama:** [Firebase](https://firebase.google.com/) (Firestore & Cloud Storage)
+- **Yapay Zeka:** [Replicate](https://replicate.com/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **QR Kod:** `qrcode.react`
 
-### Tech Stack
+## Kurulum ve Başlatma
 
-- **Framework**: Next.js 15 (App Router)
-- **Styling**: Tailwind CSS 4
-- **Storage**: Firebase Storage
-- **Database**: Firestore
-- **AI**: Replicate API
-- **QR Codes**: qrcode.react
+Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyin.
 
-## Setup Instructions
+### Gereksinimler
 
-### 1. Clone and Install
+- [Node.js](https://nodejs.org/en/) (v18 veya üstü)
+- [npm](https://www.npmjs.com/) veya [yarn](https://yarnpkg.com/)
 
-```bash
-npm install
-```
+### Adımlar
 
-### 2. Firebase Setup
+1.  **Depoyu klonlayın:**
+    ```bash
+    git clone https://github.com/your-username/image-manipulator-ai-stand-week.git
+    cd image-manipulator-ai-stand-week
+    ```
 
-1. Create a new Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable Firebase Storage and Firestore
-3. Get your Firebase configuration from Project Settings
+2.  **Bağımlılıkları yükleyin:**
+    ```bash
+    npm install
+    ```
 
-### 3. Replicate Setup
+3.  **Ortam Değişkenlerini Ayarlayın:**
+    Projenin kök dizininde `.env.local` adında bir dosya oluşturun ve aşağıdaki değişkenleri kendi Firebase ve Replicate API bilgilerinize göre doldurun.
 
-1. Sign up at [replicate.com](https://replicate.com)
-2. Get your API token from [Account Settings](https://replicate.com/account)
-3. Choose a model version from [Replicate Explore](https://replicate.com/explore)
+    ```.env.local
+    # Firebase Admin SDK Config (Server-side)
+    FIREBASE_ADMIN_SDK_BASE64=your_base64_encoded_service_account_json
 
-Popular models for image processing:
-- **BLIP Image Captioning**: `Salesforce/blip`
-- **LLaVA Vision**: `yorickvp/llava-13b`
-- **Stable Diffusion**: `stability-ai/stable-diffusion`
+    # Replicate API Token
+    REPLICATE_API_TOKEN=r8_your_replicate_api_token
+    ```
 
-### 4. Environment Variables
+4.  **Geliştirme Sunucusunu Başlatın:**
+    ```bash
+    npm run dev
+    ```
 
-Create a `.env.local` file in the root directory:
+    Tarayıcınızda `http://localhost:3000` adresini açarak uygulamayı görüntüleyebilirsiniz.
 
-```bash
-# Copy the example file
-cp .env.local.example .env.local
-```
-
-Fill in your credentials:
-
-```env
-# Site Password Protection
-NEXT_PUBLIC_SITE_PASSWORD=your_secure_password_here
-
-# Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
-# Replicate Configuration
-NEXT_PUBLIC_REPLICATE_API_TOKEN=r8_your_token_here
-NEXT_PUBLIC_REPLICATE_MODEL_VERSION=your_model_version_here
-```
-
-**Important**: Change `NEXT_PUBLIC_SITE_PASSWORD` to a secure password. This password will be required to access the entire application.
-
-### 5. Firebase Security Rules
-
-#### Storage Rules
-
-Set up Storage rules for demo purposes (adjust for production):
-
-```javascript
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    // Input images from mobile uploads
-    match /stant_images/input/{sessionId}/{imageId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // AI processed output images
-    match /stant_images/ai/{sessionId}/{imageId} {
-      allow read: if true;
-      allow write: if true;
-    }
-  }
-}
-```
-
-#### Firestore Rules
-
-Set up Firestore rules:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /sessions/{sessionId}/photos/{photoId} {
-      allow read, write: if true;
-    }
-    match /sessions/{sessionId}/aiResponses/{responseId} {
-      allow read, write: if true;
-    }
-  }
-}
-```
-
-**Note**: These rules are permissive for demo purposes. In production, implement proper authentication and authorization.
-
-## Development
-
-Run the development server:
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Usage
-
-### 1. Login
-
-1. Open the application in your browser
-2. Enter the password you set in `NEXT_PUBLIC_SITE_PASSWORD`
-3. Password is stored in browser session storage (valid until browser is closed)
-
-### 2. Create a Session
-
-1. Navigate to the home page
-2. Click "Generate ID" to create a new session ID
-3. Copy the session ID for later use
-
-### 3. Upload Photos (Mobile)
-
-1. Open `/m/[sessionId]` on your mobile device
-2. Tap to upload or use camera to capture
-3. Photos are automatically uploaded to Firebase Storage
-
-### 4. Process with AI (Desktop)
-
-1. Open `/d/[sessionId]` on your desktop
-2. Photos appear in real-time
-3. Enter a prompt for each image
-4. Click "Generate AI Image" to process
-5. View AI output on the right side
-
-### 5. Share Photos
-
-- Click "Show QR" to generate a QR code for the image URL
-- Click "Download" to save the original image
-
-## Storage Structure
-
-Firebase Storage is organized as follows:
+## Proje Yapısı
 
 ```
-stant_images/
-├── input/              # Original uploaded images
-│   └── {sessionId}/
-│       └── {timestamp}.jpg
-└── ai/                 # AI processed output images
-    └── {sessionId}/
-        └── {photoId}_{timestamp}.jpg
+.
+├── public/             # Statik dosyalar (ikonlar, fontlar)
+├── src/
+│   ├── app/            # Next.js App Router (sayfalar ve API rotaları)
+│   │   ├── c/          # Collage sayfası
+│   │   ├── d/          # Dashboard sayfası
+│   │   ├── m/          # Mobile Upload sayfası
+│   │   ├── api/        # API rotaları (download, replicate)
+│   ├── components/     # React componentleri (BentoPhoto, PhotoCard)
+│   ├── lib/            # Yardımcı modüller (Firebase, Replicate istemcileri)
+│   └── types/          # TypeScript tip tanımlamaları
+├── .env.local          # Ortam değişkenleri (gizli)
+├── next.config.ts      # Next.js yapılandırması
+└── package.json        # Proje bağımlılıkları ve scriptleri
 ```
 
-## Firestore Data Schema
+---
 
-```
-sessions/
-  {sessionId}/
-    photos/
-      {photoId}
-        - url: string                    # Input image URL
-        - storagePath: string            # Storage path for input
-        - uploadedAt: timestamp
-        - aiOutputUrl?: string           # AI output image URL
-        - aiOutputStoragePath?: string   # Storage path for AI output
-        - aiProcessedAt?: timestamp
-    aiResponses/
-      {responseId}
-        - photoId: string
-        - prompt: string
-        - outputImageUrl: string         # AI generated image URL
-        - outputImageStoragePath: string # Storage path in stant_images/ai
-        - status: string                 # 'processing' | 'succeeded' | 'failed'
-        - error?: string
-        - createdAt: timestamp
-```
-
-## API Integration
-
-### Replicate API
-
-The app uses Replicate's REST API for AI processing:
-
-1. **Create Prediction**: POST `/v1/predictions`
-2. **Poll Status**: GET `/v1/predictions/{id}`
-3. **Get Result**: Retrieved when status is "succeeded"
-
-#### Model Input Format
-
-The application sends the following parameters to Replicate:
-
-```javascript
-{
-  size: "1K",
-  width: 2048,
-  height: 2048,
-  prompt: "user's prompt text",
-  max_images: 1,
-  image_input: ["https://firebasestorage.googleapis.com/..."],  // Firebase Storage URL
-  aspect_ratio: "match_input_image",
-  sequential_image_generation: "disabled"
-}
-```
-
-#### Processing Flow
-
-1. **User uploads image** → Saved to `stant_images/input/{sessionId}/`
-2. **User enters prompt** → Sent to Replicate with image URL
-3. **Replicate processes** → Returns AI-generated image URL
-4. **Download AI output** → Fetch image from Replicate's temporary URL
-5. **Save to Firebase** → Upload to `stant_images/ai/{sessionId}/`
-6. **Update metadata** → Store URLs and timestamps in Firestore
-
-See [src/lib/replicate.ts](src/lib/replicate.ts) and [src/components/PhotoCard.tsx](src/components/PhotoCard.tsx) for implementation details.
-
-## Security Considerations
-
-**Important**: This is a demo application with client-side API calls.
-
-For production:
-
-1. Move Replicate API calls to server-side API routes
-2. Implement proper authentication
-3. Add rate limiting
-4. Secure Firebase rules
-5. Validate file uploads
-6. Add environment-specific configs
-
-## Troubleshooting
-
-### Firebase Connection Issues
-
-- Verify environment variables are set correctly
-- Check Firebase console for API key restrictions
-- Ensure Firestore and Storage are enabled
-
-### Replicate API Errors
-
-- Verify API token is valid
-- Check model version is correct
-- Ensure input format matches model requirements
-- Monitor rate limits
-
-### Image Upload Fails
-
-- Check file size (default limit: 10MB)
-- Verify Storage bucket name
-- Check CORS settings in Firebase
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── page.tsx              # Home page
-│   ├── layout.tsx            # Root layout with password protection
-│   ├── m/[sessionId]/        # Mobile upload
-│   └── d/[sessionId]/        # Desktop dashboard
-├── components/
-│   ├── PasswordProtection.tsx # Password authentication
-│   └── PhotoCard.tsx         # Photo display component
-├── lib/
-│   ├── firebase.ts           # Firebase initialization
-│   └── replicate.ts          # Replicate API client
-└── types/
-    └── index.ts              # TypeScript types
-```
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## License
-
-MIT
-
-## Contributing
-
-Contributions welcome! Please open an issue or submit a pull request.
+*Bu proje, GDG On Campus Türkiye topluluğu için bir stant etkinliği kapsamında geliştirilmiştir.*
