@@ -14,7 +14,7 @@ export default function PasswordProtection({ children }: PasswordProtectionProps
 
   // Check if already authenticated
   useEffect(() => {
-    const auth = sessionStorage.getItem('siteAuth');
+    const auth = localStorage.getItem('siteAuth');
     if (auth === 'authenticated') {
       setIsAuthenticated(true);
     }
@@ -27,7 +27,7 @@ export default function PasswordProtection({ children }: PasswordProtectionProps
     const correctPassword = process.env.NEXT_PUBLIC_SITE_PASSWORD || 'admin123';
 
     if (password === correctPassword) {
-      sessionStorage.setItem('siteAuth', 'authenticated');
+      localStorage.setItem('siteAuth', 'authenticated');
       setIsAuthenticated(true);
       setError('');
     } else {
