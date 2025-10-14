@@ -12,10 +12,16 @@ interface BentoPhotoProps {
 
 export default function BentoPhoto({ photo, downloadUrl, className = '' }: BentoPhotoProps) {
   const [showQr, setShowQr] = useState(false);
+  const [rotation, setRotation] = useState(0);
 
   const fullDownloadUrl = typeof window !== 'undefined'
     ? `${window.location.origin}${downloadUrl}`
     : downloadUrl;
+
+  const handleRotate = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering QR modal
+    setRotation((prev) => (prev + 90) % 360);
+  };
 
   return (
     <div
@@ -25,7 +31,8 @@ export default function BentoPhoto({ photo, downloadUrl, className = '' }: Bento
       <img
         src={photo.aiOutputUrl}
         alt={`AI Generated ${photo.id}`}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover transition-transform duration-300"
+        style={{ transform: `rotate(${rotation}deg)` }}
       />
       <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1">
         <p className="text-white text-xs font-medium">
@@ -33,6 +40,26 @@ export default function BentoPhoto({ photo, downloadUrl, className = '' }: Bento
            photo.uploadedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
+
+      <button
+        onClick={handleRotate}
+        className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm hover:bg-black/80 rounded-full p-2 transition-colors"
+        title="Rotate 90°"
+      >
+        <svg
+          className="w-5 h-5 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
+        </svg>
+      </button>
 
       {showQr && (
         <div
