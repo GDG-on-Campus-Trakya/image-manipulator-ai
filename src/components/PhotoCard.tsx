@@ -24,6 +24,8 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<'input' | 'ai' | null>(null);
   const [deletingAi, setDeletingAi] = useState(false);
+  const [inputRotation, setInputRotation] = useState(0);
+  const [outputRotation, setOutputRotation] = useState(0);
 
   // Generate a short URL for QR code
   const getShortDownloadUrl = () => {
@@ -231,6 +233,14 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
     setShowDeleteConfirm(null);
   };
 
+  const handleRotateInput = () => {
+    setInputRotation((prev) => (prev + 90) % 360);
+  };
+
+  const handleRotateOutput = () => {
+    setOutputRotation((prev) => (prev + 90) % 360);
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
       {/* Delete confirmation banner */}
@@ -334,11 +344,32 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
             <img
               src={photo.url}
               alt="Input photo"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain transition-transform duration-300"
+              style={{ transform: `rotate(${inputRotation}deg)` }}
             />
           </div>
 
           <div className="flex gap-2">
+            <button
+              onClick={handleRotateInput}
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+              title="Rotate 90°"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Rotate
+            </button>
             <a
               href={photo.url}
               download
@@ -483,11 +514,32 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
                 <img
                   src={aiOutputUrl}
                   alt="AI output"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain transition-transform duration-300"
+                  style={{ transform: `rotate(${outputRotation}deg)` }}
                 />
               </div>
 
               <div className="flex gap-2">
+                <button
+                  onClick={handleRotateOutput}
+                  className="px-3 py-2 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-200 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                  title="Rotate 90°"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Rotate
+                </button>
                 <a
                   href={aiOutputUrl}
                   download
