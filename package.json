@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "browser-image-compression": "^2.0.2",
     "firebase": "^12.4.0",
     "firebase-admin": "^13.5.0",
     "next": "15.5.4",

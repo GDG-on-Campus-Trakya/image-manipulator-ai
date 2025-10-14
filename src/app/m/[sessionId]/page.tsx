@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { storage, db } from '@/lib/firebase';
+import { normalizeImageOrientation } from '@/lib/imageUtils';
 
 export default function MobileUploadPage() {
   const params = useParams();
@@ -22,10 +23,14 @@ export default function MobileUploadPage() {
     setUploadSuccess(false);
 
     try {
+      // Normalize image orientation based on EXIF data
+      // This prevents images from being rotated incorrectly
+      const normalizedFile = await normalizeImageOrientation(file);
+
       // Upload to Firebase Storage - stant_images/input path
       const timestamp = Date.now();
       const storageRef = ref(storage, `stant_images/input/${sessionId}/${timestamp}.jpg`);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, normalizedFile);
 
       // Get download URL
       const downloadURL = await getDownloadURL(storageRef);

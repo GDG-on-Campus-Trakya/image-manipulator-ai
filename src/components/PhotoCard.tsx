@@ -62,14 +62,9 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
     try {
       // Prepare Replicate model input
       const modelInput: Partial<ReplicateModelInput> = {
-        size: '1K',
-        width: 2048,
-        height: 2048,
         prompt: prompt,
-        max_images: 1,
         image_input: [photo.url], // Use Firebase Storage URL
         aspect_ratio: 'match_input_image',
-        sequential_image_generation: 'disabled',
       };
 
       // Run Replicate (token is now handled by API route)
