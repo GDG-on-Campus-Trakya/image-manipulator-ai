@@ -22,8 +22,9 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
   const [showInputQR, setShowInputQR] = useState(false);
   const [showOutputQR, setShowOutputQR] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<'input' | 'ai' | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<'input' | 'ai' | 'remove' | null>(null);
   const [deletingAi, setDeletingAi] = useState(false);
+  const [removingFromDashboard, setRemovingFromDashboard] = useState(false);
   const [inputRotation, setInputRotation] = useState(0);
   const [outputRotation, setOutputRotation] = useState(0);
 
@@ -224,6 +225,29 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
     }
   };
 
+  const handleRemoveFromDashboard = async () => {
+    if (showDeleteConfirm !== 'remove') {
+      setShowDeleteConfirm('remove');
+      return;
+    }
+
+    setRemovingFromDashboard(true);
+    setError(null);
+
+    try {
+      // Only delete from Firestore - keep files in storage
+      const photoDoc = doc(db, `sessions/${sessionId}/photos`, photo.id);
+      await deleteDoc(photoDoc);
+
+      // Note: The photo will be removed from UI automatically via the Firestore listener in the parent component
+    } catch (err) {
+      console.error('Remove from dashboard error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to remove from dashboard');
+      setRemovingFromDashboard(false);
+      setShowDeleteConfirm(null);
+    }
+  };
+
   const handleCancelDelete = () => {
     setShowDeleteConfirm(null);
   };
@@ -238,6 +262,34 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      {/* Card Header with Remove Button */}
+      <div className="flex items-center justify-between px-6 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Photo ID: <span className="font-mono text-xs">{photo.id.slice(0, 8)}...</span>
+        </h2>
+        <button
+          onClick={handleRemoveFromDashboard}
+          disabled={removingFromDashboard || showDeleteConfirm === 'remove'}
+          className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/30 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400 rounded text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          title="Remove from dashboard (files remain in storage)"
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"
+            />
+          </svg>
+          Remove from Dashboard
+        </button>
+      </div>
+
       {/* Delete confirmation banner */}
       {showDeleteConfirm && (
         <div className="bg-red-50 dark:bg-red-900/30 border-b border-red-200 dark:border-red-800 p-4">
@@ -256,24 +308,32 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
               </svg>
               <span className="text-red-800 dark:text-red-200 font-medium">
                 {showDeleteConfirm === 'input'
-                  ? 'Delete the original image? This will also delete the AI output.'
-                  : 'Delete the AI-generated image? The original will be kept.'}
+                  ? 'Delete the original image? This will also delete the AI output from storage.'
+                  : showDeleteConfirm === 'ai'
+                  ? 'Delete the AI-generated image from storage? The original will be kept.'
+                  : 'Remove this element from the dashboard? Files will remain in storage.'}
               </span>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={handleCancelDelete}
-                disabled={deleting || deletingAi}
+                disabled={deleting || deletingAi || removingFromDashboard}
                 className="px-4 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-600 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
-                onClick={showDeleteConfirm === 'input' ? handleDeleteInput : handleDeleteAi}
-                disabled={deleting || deletingAi}
+                onClick={
+                  showDeleteConfirm === 'input'
+                    ? handleDeleteInput
+                    : showDeleteConfirm === 'ai'
+                    ? handleDeleteAi
+                    : handleRemoveFromDashboard
+                }
+                disabled={deleting || deletingAi || removingFromDashboard}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
               >
-                {(deleting || deletingAi) ? (
+                {(deleting || deletingAi || removingFromDashboard) ? (
                   <>
                     <svg
                       className="animate-spin h-4 w-4"
@@ -294,10 +354,10 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Deleting...
+                    {showDeleteConfirm === 'remove' ? 'Removing...' : 'Deleting...'}
                   </>
                 ) : (
-                  'Delete'
+                  showDeleteConfirm === 'remove' ? 'Remove' : 'Delete'
                 )}
               </button>
             </div>
