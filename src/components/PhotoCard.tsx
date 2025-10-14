@@ -64,7 +64,7 @@ export default function PhotoCard({ photo, sessionId }: PhotoCardProps) {
       // Prepare Replicate model input
       const modelInput: Partial<ReplicateModelInput> = {
         prompt: prompt,
-        image_input: [photo.url], // Use Firebase Storage URL
+        image: [photo.url], // Use Firebase Storage URL
         aspect_ratio: 'match_input_image',
       };
 

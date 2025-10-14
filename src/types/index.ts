@@ -32,7 +32,7 @@ export interface ReplicateModelInput {
   height: number;
   prompt: string;
   max_images: number;
-  image_input: string[]; // Array of image URLs
+  image: string[]; // Array of image URLs
   aspect_ratio: string;
   sequential_image_generation: string;
 }
