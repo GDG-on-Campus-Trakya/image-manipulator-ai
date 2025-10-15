@@ -77,21 +77,24 @@ export async function normalizeImageOrientation(file: File): Promise<File> {
           // Draw the image with correct orientation
           ctx.drawImage(img, 0, 0);
 
-          // Convert canvas to blob
+          // Convert canvas to blob as PNG format
+          // PNG doesn't preserve EXIF data, which ensures the rotation is baked into the image
           canvas.toBlob((blob) => {
             if (!blob) {
               reject(new Error('Failed to create blob from canvas'));
               return;
             }
 
-            // Create a new File from the blob with the same name and type
-            const correctedFile = new File([blob], file.name, {
-              type: file.type,
+            // Create a new File from the blob as PNG
+            // Change the file extension to .png and set type to image/png
+            const originalName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
+            const correctedFile = new File([blob], `${originalName}.png`, {
+              type: 'image/png',
               lastModified: Date.now(),
             });
 
             resolve(correctedFile);
-          }, file.type);
+          }, 'image/png');
         });
       };
 
