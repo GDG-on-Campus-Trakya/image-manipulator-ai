@@ -29,7 +29,8 @@ export default function MobileUploadPage() {
 
       // Upload to Firebase Storage - stant_images/input path
       const timestamp = Date.now();
-      const storageRef = ref(storage, `stant_images/input/${sessionId}/${timestamp}.jpg`);
+      // Use .png extension since images are converted to PNG
+      const storageRef = ref(storage, `stant_images/input/${sessionId}/${timestamp}.png`);
       await uploadBytes(storageRef, normalizedFile);
 
       // Get download URL
